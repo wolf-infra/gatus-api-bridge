@@ -1,0 +1,14 @@
+name: Docker Build and Publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    tags: ["v*.*.*"]
+
+jobs:
+  call-docker-publish:
+    permissions:
+      contents: read
+      packages: write
+    uses: wolf-infra/.github/.github/workflows/docker-publish.yml@main
