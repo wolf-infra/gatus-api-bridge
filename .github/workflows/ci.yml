@@ -1,0 +1,11 @@
+name: CI
+
+on:
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  call-ci:
+    uses: wolf-infra/.github/.github/workflows/go-ci.yml@main
+    with:
+      go_version: "1.26.1"
