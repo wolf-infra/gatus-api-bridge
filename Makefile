@@ -1,0 +1,47 @@
+.DEFAULT_GOAL := help
+.PHONY: all help init tidy fmt lint test build run clean ci-local
+
+help: ## Show this help message
+	@echo "Usage: make [target]"
+	@echo ""
+	@echo "Targets:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
+
+all: tidy fmt lint test build ## Run tidy, formatting, linting, tests, and build
+
+init: ## Configure git to use the version-controlled hooks directory
+	@git config core.hooksPath .githooks
+	@chmod +x .githooks/*
+	@echo "=> Git hooks configured successfully!"
+
+tidy: ## Clean up and verify Go modules
+	@echo "=> Running go mod tidy..."
+	@go mod tidy
+
+fmt: ## Format the Go code
+	@echo "=> Formatting code..."
+	@go fmt ./...
+
+lint: ## Run the golangci-lint linter
+	@echo "=> Running golangci-lint..."
+	@golangci-lint run ./...
+
+test: ## Run all tests with coverage and race detector
+	@echo "=> Running tests..."
+	@go test -v -race -cover ./...
+
+build: ## Build a static production binary locally to bin/gatus-bridge
+	@echo "=> Building static binary..."
+	@CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/gatus-bridge cmd/bridge/main.go
+
+run: build ## Build and run locally with DRY_RUN to protect your local file system
+	@echo "=> Running Gatus API Bridge locally..."
+	@PORT=8080 DRY_RUN=true GATUS_CONFIG_PATH=local-config.yaml ./bin/gatus-bridge
+
+clean: ## Clean up the bin/ directory
+	@echo "=> Cleaning..."
+	@rm -rf bin/ local-config.yaml
+
+ci-local: ## Run the GitHub Actions CI pipeline locally using act
+	@echo "=> Running CI locally with act..."
+	@act pull_request -W .github/workflows/ci.yml --container-architecture linux/amd64
