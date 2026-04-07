@@ -67,7 +67,10 @@ func (m *Manager) AddEndpoint(newEp Endpoint) (bool, error) {
 	var cfg Config
 	data, err := os.ReadFile(m.configPath)
 	if err == nil {
-		yaml.Unmarshal(data, &cfg)
+		if err := yaml.Unmarshal(data, &cfg); err != nil {
+			// We log a warning instead of failing, because we might just want to overwrite a broken file
+			m.logger.Warn("Failed to unmarshal existing config file", slog.Any("error", err))
+		}
 	}
 
 	for _, ep := range cfg.Endpoints {

@@ -40,7 +40,9 @@ func (s *Server) handleAddEndpoint(w http.ResponseWriter, r *http.Request) {
 			slog.String("group", ep.Group),
 		)
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]string{"status": "exists"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"status": "exists"}); err != nil {
+			s.logger.Error("Failed to encode response", slog.Any("error", err))
+		}
 		return
 	}
 
@@ -49,5 +51,7 @@ func (s *Server) handleAddEndpoint(w http.ResponseWriter, r *http.Request) {
 		slog.String("group", ep.Group),
 	)
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{"status": "created"})
+	if err := json.NewEncoder(w).Encode(map[string]string{"status": "created"}); err != nil {
+		s.logger.Error("Failed to encode response", slog.Any("error", err))
+	}
 }
