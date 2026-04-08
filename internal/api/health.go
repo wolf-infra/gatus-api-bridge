@@ -13,7 +13,7 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(map[string]string{
 		"status":  "healthy",
 		"service": "gatus-api-bridge",
-		"version": "1.0.0",
+		"version": s.version,
 	}); err != nil {
 		s.logger.Error("Failed to encode health response", slog.Any("error", err))
 	}

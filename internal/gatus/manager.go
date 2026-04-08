@@ -102,3 +102,58 @@ func (m *Manager) AddEndpoint(newEp Endpoint) (bool, error) {
 	m.logger.Info("Successfully wrote to file", slog.String("path", m.configPath))
 	return true, nil
 }
+
+// DeleteEndpoint safely removes an endpoint. Respects DRY_RUN flag.
+func (m *Manager) DeleteEndpoint(name, group string) (bool, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	var cfg Config
+	data, err := os.ReadFile(m.configPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil // File doesn't exist, nothing to delete
+		}
+		return false, fmt.Errorf("failed to read config: %w", err)
+	}
+
+	if err := yaml.Unmarshal(data, &cfg); err != nil {
+		return false, fmt.Errorf("failed to parse yaml: %w", err)
+	}
+
+	initialLen := len(cfg.Endpoints)
+	var newEndpoints []Endpoint
+
+	// Keep everything EXCEPT the one we want to delete
+	for _, ep := range cfg.Endpoints {
+		if ep.Name == name && ep.Group == group {
+			continue
+		}
+		newEndpoints = append(newEndpoints, ep)
+	}
+
+	// If the length is the same, we didn't find it
+	if len(newEndpoints) == initialLen {
+		return false, nil
+	}
+
+	cfg.Endpoints = newEndpoints
+	updatedData, err := yaml.Marshal(&cfg)
+	if err != nil {
+		m.logger.Error("Failed to marshal YAML", slog.Any("error", err))
+		return false, fmt.Errorf("failed to marshal yaml: %w", err)
+	}
+
+	if m.dryRun {
+		m.logger.Info("DRY_RUN: Would have deleted endpoint", slog.String("name", name))
+		return true, nil
+	}
+
+	if err := os.WriteFile(m.configPath, updatedData, 0644); err != nil {
+		m.logger.Error("Failed to write config file", slog.Any("error", err))
+		return false, fmt.Errorf("failed to write file: %w", err)
+	}
+
+	m.logger.Info("Successfully deleted endpoint from file", slog.String("path", m.configPath))
+	return true, nil
+}
