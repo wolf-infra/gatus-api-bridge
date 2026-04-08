@@ -11,12 +11,14 @@ import (
 type Server struct {
 	Manager *gatus.Manager
 	logger  *slog.Logger
+	version string
 }
 
-func NewServer(manager *gatus.Manager, logger *slog.Logger) *Server {
+func NewServer(manager *gatus.Manager, logger *slog.Logger, version string) *Server {
 	return &Server{
 		Manager: manager,
 		logger:  logger,
+		version: version,
 	}
 }
 

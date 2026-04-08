@@ -12,10 +12,10 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 
+ARG VERSION=dev
+
 # Build the static binary
-# We still build a static binary so it's portable and fast
-# Build the static binary
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o gatus-bridge ./cmd/bridge/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w -X 'main.Version=${VERSION}'" -o gatus-bridge ./cmd/bridge/main.go
 
 # --- Stage 2: Final Image ---
 FROM alpine:3.23

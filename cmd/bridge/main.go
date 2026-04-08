@@ -10,6 +10,8 @@ import (
 	"github.com/wolf-infra/gatus-api-bridge/internal/gatus"
 )
 
+var Version = "dev" // Defaults to "dev" if not built with a tag
+
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
@@ -21,7 +23,7 @@ func main() {
 
 	// Initialize Manager and Server (Injecting the logger)
 	manager := gatus.NewManager(cfg.ConfigPath, cfg.DryRun, logger)
-	server := api.NewServer(manager, logger)
+	server := api.NewServer(manager, logger, Version)
 	mux := server.Mount()
 
 	// Structured Startup Logs
