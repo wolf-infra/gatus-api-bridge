@@ -23,7 +23,7 @@ func main() {
 
 	// Initialize Manager and Server (Injecting the logger)
 	manager := gatus.NewManager(cfg.ConfigPath, cfg.DryRun, logger)
-	server := api.NewServer(manager, logger, Version)
+	server := api.NewServer(manager, logger, Version, cfg.APIKey)
 	mux := server.Mount()
 
 	// Structured Startup Logs
