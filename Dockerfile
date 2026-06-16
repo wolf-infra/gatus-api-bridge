@@ -18,7 +18,7 @@ ARG VERSION=dev
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w -X 'main.Version=${VERSION}'" -o gatus-bridge ./cmd/bridge/main.go
 
 # --- Stage 2: Final Image ---
-FROM alpine:3.23
+FROM alpine:3.24
 
 # Install runtime essentials
 # We keep alpine here to have 'sh' and 'chown' available for volume debugging
